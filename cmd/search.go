@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	deleteRobotInputParams = &internal.DeleteRobotInputParams{}
+	ListRobotInputParams = &internal.ListRobotInputParams{}
 )
 
-var DeleteCommand = &cobra.Command{
-	Use:   "delete",
-	Short: "delete robot",
-	Long:  `Sub-command for Delete`,
+var SearchCommand = &cobra.Command{
+	Use:   "search",
+	Short: "search robot",
+	Long:  `Sub-command for Search`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cobra.MaximumNArgs(0)(cmd, args); err != nil {
 			panicRed(err)
@@ -74,7 +74,7 @@ var DeleteCommand = &cobra.Command{
 			robots = append(robots, robotListed)
 		}
 
-		answer, err := utils.AskPromptOptionList("Please select the robot you want to delete", robots, 10)
+		answer, err := utils.AskPromptOptionList("Please select the robot you want to view in detail", robots, 10)
 		if err != nil {
 			err = fmt.Errorf("failed to ask prompt option list: %w", err)
 			panicRed(err)
@@ -84,37 +84,9 @@ var DeleteCommand = &cobra.Command{
 		t.SetOutputMirror(os.Stdout)
 		internal.ListRobotTableOutput(t, robotTable[answer])
 		t.Render()
-
-		msg := "Are you sure you want to delete this robot"
-		deleteAnswer, err := utils.AskYesOrNo(msg)
-		if err != nil {
-			err = fmt.Errorf("failed to ask yes or no: %w", err)
-			panicRed(err)
-		}
-
-		if deleteAnswer == "Yes" {
-			deleteRobotInputParams = internal.NewDeleteRobotInputParams(robotTable[answer].ID)
-			deleteRobotParams, err := deleteRobotInputParams.DeleteRobotParams(ctx)
-			if err != nil {
-				panicRed(err)
-			}
-
-			robot, err := utils.NewRobotClient().DeleteRobot(
-				deleteRobotParams,
-				utils.SetAuthorizationWithToken(token))
-			if err != nil {
-				panicRed(err)
-			}
-
-			if robot.IsSuccess() {
-				msg := fmt.Sprintf("Successfully deleted robot %s\n", robotTable[answer].Description)
-				doneMsg(msg)
-			}
-		}
-
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(DeleteCommand)
+	rootCmd.AddCommand(SearchCommand)
 }

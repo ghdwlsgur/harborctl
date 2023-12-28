@@ -13,10 +13,12 @@ import (
 var (
 	_user   = &internal.User{}
 	rootCmd = &cobra.Command{
-		Use:   "captain",
+		Use:   "harborctl",
 		Short: `harbor client tool`,
 		Long:  `harbor client tool`,
 	}
+
+	doneMsg = color.New(color.Bold, color.FgHiGreen).PrintFunc()
 )
 
 func panicRed(err error) {

@@ -33,12 +33,6 @@ var CreateCommand = &cobra.Command{
 		ctx := rootCmd.Context()
 		token := ctx.Value(header("BasicAuth")).(string)
 
-		err := utils.NewClient(utils.Post)
-		if err != nil {
-			err = fmt.Errorf("failed to create client: %w", err)
-			panicRed(err)
-		}
-
 		createRobotInputParams = internal.NewCreateRobotInputParams(
 			name,        /* name */
 			description, /* description */
@@ -51,19 +45,24 @@ var CreateCommand = &cobra.Command{
 			panicRed(err)
 		}
 
-		robot, err := utils.NewRobotClient().CreateRobot(
+		robotCreated, err := utils.NewRobotClient().CreateRobot(
 			createRobotParams,                      /* params */
 			utils.SetAuthorizationWithToken(token), /* authInfoWriter */
 		)
 		if err != nil {
-			err = fmt.Errorf("failed to create robot: %w", err)
+			err = fmt.Errorf("failed to create robot - already exists account: %w ", err)
 			panicRed(err)
 		}
 
-		t := table.NewWriter()
-		t.SetOutputMirror(os.Stdout)
-		internal.OutputCreateRobotTable(t, robot)
-		t.Render()
+		if robotCreated.IsSuccess() {
+			t := table.NewWriter()
+			t.SetOutputMirror(os.Stdout)
+			internal.CreateRobotTableOutput(t, robotCreated)
+			t.Render()
+
+			msg := fmt.Sprintf("Successfully created robot %s\n", robotCreated.GetPayload().Name)
+			doneMsg(msg)
+		}
 	},
 }
 

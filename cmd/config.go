@@ -7,8 +7,8 @@ import (
 var (
 	configCommand = &cobra.Command{
 		Use:       "config",
-		Short:     "Configure Captain",
-		Long:      `Configure Captain`,
+		Short:     "Configure harborctl",
+		Long:      `Configure harborctl`,
 		ValidArgs: []string{"login"},
 		Run: func(cmd *cobra.Command, args []string) {
 			var (

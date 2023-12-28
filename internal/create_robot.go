@@ -14,10 +14,14 @@ import (
 type CreateRobotInputParams struct {
 	Name        string
 	Description string
+	ExpiresAt   string
 	Duration    int64
 }
 
 type RobotCreater interface {
+	GetName() string
+	GetDescription() string
+	GetDuration() int64
 	CreateRobotParams(ctx context.Context) (*robot.CreateRobotParams, error)
 }
 
@@ -31,6 +35,8 @@ func NewCreateRobotInputParams(name,
 		Duration:    duration,
 	}
 }
+
+var _ RobotCreater = (*CreateRobotInputParams)(nil)
 
 func (r CreateRobotInputParams) GetName() string {
 	return r.Name
@@ -53,6 +59,7 @@ func (r *CreateRobotInputParams) CreateRobotParams(ctx context.Context) (*robot.
 		Duration:    r.GetDuration(),
 		Secret:      "random",
 		Level:       "system",
+
 		Permissions: []*models.RobotPermission{
 			{
 				Access: []*models.Access{
@@ -79,13 +86,13 @@ func (r *CreateRobotInputParams) CreateRobotParams(ctx context.Context) (*robot.
 	return createRobotParamsWithContext, nil
 }
 
-func OutputCreateRobotTable(
+func CreateRobotTableOutput(
 	writer table.Writer,
 	robot *robot.CreateRobotCreated) (table.Writer, error) {
 
-	days, err := utils.CountDays(robot.GetPayload().ExpiresAt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to count days - OutputCreateRobotTable: %w", err)
+	count := utils.CountDays(robot.GetPayload().ExpiresAt)
+	if count.Err != nil {
+		return nil, fmt.Errorf("failed to count days - OutputCreateRobotTable: %w", count.Err)
 	}
 
 	creationTime, err := utils.CreationTimeFormatKST(robot.GetPayload().CreationTime.String())
@@ -93,13 +100,13 @@ func OutputCreateRobotTable(
 		return nil, fmt.Errorf("failed to format creation time - OutputCreateRobotTable: %w", err)
 	}
 
-	writer.AppendHeader(table.Row{"Name", "Secret", "Expires_At", "D_Day", "Creation_Time"})
+	writer.AppendHeader(table.Row{"Name", "Secret", "Creation_Time", "Expired_time", "D_Day"})
 	writer.AppendRow(table.Row{
-		robot.GetPayload().Name,                                   /* name */
-		robot.GetPayload().Secret,                                 /* secret */
+		robot.GetPayload().Name,   /* name */
+		robot.GetPayload().Secret, /* secret */
+		creationTime,              /* creation_time */
 		utils.ExpiresAtToStringTime(robot.GetPayload().ExpiresAt), /* expires_at */
-		days,         /* d_day */
-		creationTime, /* creation_time */
+		count.LeftDays, /* d_day */
 	})
 
 	return writer, nil
