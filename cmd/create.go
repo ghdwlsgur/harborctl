@@ -39,8 +39,6 @@ var CreateCommand = &cobra.Command{
 			duration,    /* duration */
 		)
 
-		fmt.Println(duration)
-
 		createRobotParams, err := createRobotInputParams.CreateRobotParams(ctx)
 		if err != nil {
 			panicRed(fmt.Errorf("failed to create robot params: %w", err))
