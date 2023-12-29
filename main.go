@@ -1,7 +1,7 @@
 package main
 
-import "github.com/ghdwlsgur/captain/cmd"
+import "github.com/ghdwlsgur/harborctl/cmd"
 
 func main() {
-	cmd.Execute("0.0.1")
+	cmd.Execute("1.0.0")
 }
