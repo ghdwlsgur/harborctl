@@ -48,7 +48,7 @@ brews:
   - name: harborctl
     homepage: "https://github.com/ghdwlsgur/harborctl"
     description: "it is a cli client tool for managing harbor robot accounts."
-    tap:
+    repository:
       owner: ghdwlsgur
       name: homebrew-harborctl
     commit_author:
