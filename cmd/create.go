@@ -27,7 +27,7 @@ var CreateCommand = &cobra.Command{
 		}
 
 		name := strings.TrimSpace(args[0])
-		duration := viper.GetInt64("duration")
+		duration := viper.GetInt64("create-duration")
 		description := viper.GetString("description")
 
 		ctx := rootCmd.Context()
@@ -38,6 +38,8 @@ var CreateCommand = &cobra.Command{
 			description, /* description */
 			duration,    /* duration */
 		)
+
+		fmt.Println(duration)
 
 		createRobotParams, err := createRobotInputParams.CreateRobotParams(ctx)
 		if err != nil {
@@ -74,10 +76,10 @@ func init() {
 	}
 
 	description := fmt.Sprintf("created by harborctl on %s", host)
-	CreateCommand.Flags().IntP("duration", "d", 1, "Setting an expiration period for the harbor robot account")
+	CreateCommand.Flags().Int64P("create-duration", "d", 30, "Setting an expiration period for the harbor robot account")
 	CreateCommand.Flags().StringP("description", "e", description, "Writing a description for the harbor robot account")
 
-	viper.BindPFlag("duration", CreateCommand.Flags().Lookup("duration"))
+	viper.BindPFlag("create-duration", CreateCommand.Flags().Lookup("create-duration"))
 	viper.BindPFlag("description", CreateCommand.Flags().Lookup("description"))
 
 	rootCmd.AddCommand(CreateCommand)

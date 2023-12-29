@@ -93,7 +93,7 @@ var UpdateCommand = &cobra.Command{
 		before.Render()
 
 		beforeDuration := robotTable[answer].Duration
-		afterDuration := viper.GetInt64("duration")
+		afterDuration := viper.GetInt64("update-duration")
 
 		// editable check and update
 		if robotTable[answer].Editable {
@@ -141,9 +141,9 @@ var UpdateCommand = &cobra.Command{
 }
 
 func init() {
-	UpdateCommand.Flags().Int64P("duration", "d", 30, "duration")
+	UpdateCommand.Flags().Int64P("update-duration", "d", 30, "Updating an expiration period for the harbor robot account")
 
-	viper.BindPFlag("duration", UpdateCommand.Flags().Lookup("duration"))
+	viper.BindPFlag("update-duration", UpdateCommand.Flags().Lookup("update-duration"))
 
 	rootCmd.AddCommand(UpdateCommand)
 }
