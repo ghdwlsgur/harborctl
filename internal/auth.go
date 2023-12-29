@@ -13,7 +13,7 @@ import (
 
 var (
 	homeDir, _            = os.UserHomeDir()
-	_credentialParentFile = filepath.Join(homeDir + "/.captain")
+	_credentialParentFile = filepath.Join(homeDir + "/.harborctl")
 	_credentialFile       = _credentialParentFile + "/credentials"
 )
 

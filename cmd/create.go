@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ghdwlsgur/captain/internal"
-	"github.com/ghdwlsgur/captain/utils"
+	"github.com/ghdwlsgur/harborctl/internal"
+	"github.com/ghdwlsgur/harborctl/utils"
 	"github.com/jedib0t/go-pretty/table"
 
 	"github.com/spf13/cobra"
@@ -19,8 +19,8 @@ var (
 
 var CreateCommand = &cobra.Command{
 	Use:   "create",
-	Short: "create robot",
-	Long:  `Sub-command for Create`,
+	Short: "Create a robot account",
+	Long:  `Creating a robot account in harbor`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cobra.MinimumNArgs(1)(cmd, args); err != nil {
 			panicRed(err)
@@ -41,23 +41,24 @@ var CreateCommand = &cobra.Command{
 
 		createRobotParams, err := createRobotInputParams.CreateRobotParams(ctx)
 		if err != nil {
-			err = fmt.Errorf("failed to create robot params: %w", err)
-			panicRed(err)
+			panicRed(fmt.Errorf("failed to create robot params: %w", err))
 		}
 
 		robotCreated, err := utils.NewRobotClient().CreateRobot(
 			createRobotParams,                      /* params */
-			utils.SetAuthorizationWithToken(token), /* authInfoWriter */
+			utils.SetAuthorizationWithToken(token), /* authInfo */
 		)
 		if err != nil {
-			err = fmt.Errorf("failed to create robot - already exists account: %w ", err)
-			panicRed(err)
+			panicRed(fmt.Errorf("failed to create robot - already exists account: %w ", err))
 		}
 
 		if robotCreated.IsSuccess() {
 			t := table.NewWriter()
 			t.SetOutputMirror(os.Stdout)
-			internal.CreateRobotTableOutput(t, robotCreated)
+			internal.CreateRobotTableOutput(
+				t,            /* writer */
+				robotCreated, /* robot */
+				description /* description */)
 			t.Render()
 
 			msg := fmt.Sprintf("Successfully created robot %s\n", robotCreated.GetPayload().Name)
@@ -67,8 +68,14 @@ var CreateCommand = &cobra.Command{
 }
 
 func init() {
-	CreateCommand.Flags().IntP("duration", "d", -1, "duration")
-	CreateCommand.Flags().StringP("description", "e", "created by captain cli", "description")
+	host, err := os.Hostname()
+	if err != nil {
+		panicRed(fmt.Errorf("failed to get hostname: %w", err))
+	}
+
+	description := fmt.Sprintf("created by harborctl on %s", host)
+	CreateCommand.Flags().IntP("duration", "d", 1, "Setting an expiration period for the harbor robot account")
+	CreateCommand.Flags().StringP("description", "e", description, "Writing a description for the harbor robot account")
 
 	viper.BindPFlag("duration", CreateCommand.Flags().Lookup("duration"))
 	viper.BindPFlag("description", CreateCommand.Flags().Lookup("description"))

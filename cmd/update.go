@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ghdwlsgur/captain/internal"
-	"github.com/ghdwlsgur/captain/utils"
+	"github.com/ghdwlsgur/harborctl/internal"
+	"github.com/ghdwlsgur/harborctl/utils"
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var (
+	getRobotInputParams = &internal.GetRobotInputParams{}
+)
+
 var UpdateCommand = &cobra.Command{
 	Use:   "update",
-	Short: "update robot",
-	Long:  `Sub-command for Update`,
+	Short: "Update a robot account's duration",
+	Long:  `Updating a robot account's duration in harbor, Only accounts with a duration of 0 or greater are eligible for updates`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cobra.MaximumNArgs(0)(cmd, args); err != nil {
 			panicRed(err)
@@ -28,8 +32,7 @@ var UpdateCommand = &cobra.Command{
 			token, /* token */
 		)
 		if err != nil {
-			err = fmt.Errorf("failed to create list robot input params: %w", err)
-			panicRed(err)
+			panicRed(fmt.Errorf("failed to list robot input params: %w", err))
 		}
 
 		var (
@@ -39,8 +42,7 @@ var UpdateCommand = &cobra.Command{
 		for i := 0; i < ListRobotInputParams.GetMaxPage(); i++ {
 			success, robotPayload, err := ListRobotInputParams.Payload(ctx)
 			if err != nil {
-				err = fmt.Errorf("failed to get payload: %w", err)
-				panicRed(err)
+				panicRed(fmt.Errorf("failed to get payload: %w", err))
 			}
 
 			if success {
@@ -49,6 +51,7 @@ var UpdateCommand = &cobra.Command{
 						v.Description = "undefined"
 					}
 
+					// only show robots that have not expired
 					if v.Duration >= 0 {
 						k := fmt.Sprintf("%s [%s]", v.Description, v.Name)
 						robotTable[k] = &internal.Robot{
@@ -65,7 +68,7 @@ var UpdateCommand = &cobra.Command{
 				}
 				ListRobotInputParams.NextPage()
 			} else {
-				break
+				panicRed(fmt.Errorf("failed to get payload: %w", err))
 			}
 		}
 
@@ -74,22 +77,26 @@ var UpdateCommand = &cobra.Command{
 			robots = append(robots, robotListed)
 		}
 
-		answer, err := utils.AskPromptOptionList("Please select the robot you want to view in detail", robots, 10)
+		msg := "Please select the robot you want to view in detail"
+		answer, err := utils.AskPromptOptionList(
+			msg,    /* message */
+			robots, /* options */
+			10 /* size */)
 		if err != nil {
-			err = fmt.Errorf("failed to ask prompt option list: %w", err)
-			panicRed(err)
+			panicRed(fmt.Errorf("failed to ask prompt option list: %w", err))
 		}
 
-		t := table.NewWriter()
-		t.SetOutputMirror(os.Stdout)
-		internal.ListRobotTableOutput(t, robotTable[answer])
-		t.Render()
+		before := table.NewWriter()
+		before.SetTitle("Before")
+		before.SetOutputMirror(os.Stdout)
+		internal.ListRobotTableOutput(before, robotTable[answer])
+		before.Render()
 
 		beforeDuration := robotTable[answer].Duration
 		afterDuration := viper.GetInt64("duration")
 
+		// editable check and update
 		if robotTable[answer].Editable {
-
 			updateRobotInputParams := internal.NewUpdateRobotInputParams(
 				robotTable[answer].ID,          /* robotID */
 				int64(afterDuration),           /* duration */
@@ -97,17 +104,34 @@ var UpdateCommand = &cobra.Command{
 				robotTable[answer].Description, /* description */
 			)
 
-			updateRobotParams := updateRobotInputParams.UpdateRobotParams(ctx)
+			updateRobotParams, err := updateRobotInputParams.UpdateRobotParams(ctx)
+			if err != nil {
+				panicRed(fmt.Errorf("failed to update robot params: %w", err))
+			}
 			robotUpdated, err := utils.NewRobotClient().UpdateRobot(
 				updateRobotParams,                      /* params */
-				utils.SetAuthorizationWithToken(token), /* authInfoWriter */
+				utils.SetAuthorizationWithToken(token), /* authInfo */
 			)
 			if err != nil {
-				err = fmt.Errorf("failed to update robot: %w", err)
-				panicRed(err)
+				panicRed(fmt.Errorf("failed to update robot: %w", err))
 			}
 
 			if robotUpdated.IsSuccess() {
+				getRobotInputParams = internal.NewGetRobotInputParams(robotTable[answer].ID)
+				getRobotParams := getRobotInputParams.GetRobotParams(ctx)
+
+				newRobot, err := utils.NewRobotClient().GetRobotByID(
+					getRobotParams, /* params */
+					utils.SetAuthorizationWithToken(token) /* authInfo */)
+				if err != nil {
+					panicRed(fmt.Errorf("failed to get robot by id: %w", err))
+				}
+
+				after := table.NewWriter()
+				after.SetOutputMirror(os.Stdout)
+				internal.UpdateRobotTableOutput(after, newRobot.GetPayload())
+				after.Render()
+
 				msg := fmt.Sprintf("Successfully updated robot duration %d to %d\n", beforeDuration, afterDuration)
 				doneMsg(msg)
 			}

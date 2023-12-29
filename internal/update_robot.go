@@ -2,9 +2,14 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ghdwlsgur/harbor-robot-sdk/pkg/sdk/robot/client/robot"
 	"github.com/ghdwlsgur/harbor-robot-sdk/pkg/sdk/robot/models"
+	"github.com/ghdwlsgur/harborctl/utils"
+	"github.com/go-openapi/strfmt"
+	"github.com/jedib0t/go-pretty/table"
+	"github.com/jedib0t/go-pretty/text"
 )
 
 type UpdateRobotInputParams struct {
@@ -19,7 +24,7 @@ type RobotUpdater interface {
 	GetDuration() int64
 	GetName() string
 	GetDescription() string
-	UpdateRobotParams(ctx context.Context) *robot.UpdateRobotParams
+	UpdateRobotParams(ctx context.Context) (*robot.UpdateRobotParams, error)
 }
 
 var _ RobotUpdater = (*UpdateRobotInputParams)(nil)
@@ -55,7 +60,7 @@ func (r UpdateRobotInputParams) GetDescription() string {
 }
 
 func (r *UpdateRobotInputParams) UpdateRobotParams(
-	ctx context.Context) *robot.UpdateRobotParams {
+	ctx context.Context) (*robot.UpdateRobotParams, error) {
 
 	updateRobotParams := &robot.UpdateRobotParams{
 		RobotID: r.GetRobotID(),
@@ -86,5 +91,64 @@ func (r *UpdateRobotInputParams) UpdateRobotParams(
 		Context: ctx,
 	}
 
-	return updateRobotParams
+	if err := updateRobotParams.Robot.Validate(strfmt.Default); err != nil {
+		return nil, fmt.Errorf("failed to validate robot update model - UpdateRobotParams: %w", err)
+	}
+
+	return updateRobotParams, nil
+}
+
+func UpdateRobotTableOutput(
+	writer table.Writer,
+	robot *models.Robot) (table.Writer, error) {
+
+	creationTime, err := utils.CreationTimeFormatKST(robot.CreationTime.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse time - CreationTimeFormatKST: %w", err)
+	}
+
+	writer.SetTitle("After")
+	writer.AppendHeader(table.Row{
+		"ID",
+		"Name",
+		"Description",
+		"Creation_Time",
+		"Expired_Time",
+		"D_Day",
+		"Duration",
+	})
+	writer.SetColumnConfigs([]table.ColumnConfig{
+		{
+			Name:        "Expired_Time",
+			Align:       text.AlignLeft,
+			AlignHeader: text.AlignLeft,
+			AlignFooter: text.AlignLeft,
+			Colors:      text.Colors{text.FgHiGreen, text.Bold},
+		},
+		{
+			Name:        "D_Day",
+			Align:       text.AlignLeft,
+			AlignHeader: text.AlignLeft,
+			AlignFooter: text.AlignLeft,
+			Colors:      text.Colors{text.FgHiGreen, text.Bold},
+		},
+		{
+			Name:        "Duration",
+			Align:       text.AlignRight,
+			AlignHeader: text.AlignRight,
+			AlignFooter: text.AlignRight,
+			Colors:      text.Colors{text.FgHiGreen, text.Bold},
+		},
+	})
+	writer.AppendRow(table.Row{
+		robot.ID,
+		robot.Name,
+		robot.Description,
+		creationTime,
+		utils.ExpiresAtToStringTime(robot.ExpiresAt),
+		utils.CountDays(robot.ExpiresAt).Validate(),
+		robot.Duration,
+	})
+
+	return writer, nil
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ghdwlsgur/captain/utils"
 	"github.com/ghdwlsgur/harbor-robot-sdk/pkg/sdk/robot/client/robot"
 	"github.com/ghdwlsgur/harbor-robot-sdk/pkg/sdk/robot/models"
+	"github.com/ghdwlsgur/harborctl/utils"
 	"github.com/jedib0t/go-pretty/table"
 )
 
@@ -75,11 +75,10 @@ func (r *ListRobotInputParams) setPage(page *int64) {
 func (r *ListRobotInputParams) setTotalSize(ctx context.Context) (int, error) {
 	robot, err := utils.NewRobotClient().ListRobot(
 		nil, /* params */
-		utils.SetAuthorizationWithToken(r.GetToken()), /* authInfoWriter */
+		utils.SetAuthorizationWithToken(r.GetToken()), /* authInfo */
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to list robot: %w", err)
-		return 0, err
+		return 0, fmt.Errorf("failed to list robot: %w", err)
 	}
 
 	return int(robot.XTotalCount), nil
@@ -121,7 +120,7 @@ func (r *ListRobotInputParams) Payload(ctx context.Context) (bool, []*models.Rob
 
 	robotListed, err := utils.NewRobotClient().ListRobot(
 		params, /* params */
-		utils.SetAuthorizationWithToken(r.GetToken()), /* authInfoWriter */
+		utils.SetAuthorizationWithToken(r.GetToken()), /* authInfo */
 	)
 	if err != nil {
 		err = fmt.Errorf("failed to list robot: %w", err)

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ghdwlsgur/captain/utils"
 	"github.com/ghdwlsgur/harbor-robot-sdk/pkg/sdk/robot/client/robot"
 	"github.com/ghdwlsgur/harbor-robot-sdk/pkg/sdk/robot/models"
+	"github.com/ghdwlsgur/harborctl/utils"
 	"github.com/go-openapi/strfmt"
 	"github.com/jedib0t/go-pretty/table"
 )
@@ -79,7 +79,7 @@ func (r *CreateRobotInputParams) CreateRobotParams(ctx context.Context) (*robot.
 	}
 
 	if err := createRobotModel.Validate(strfmt.Default); err != nil {
-		return nil, fmt.Errorf("failed to validate robot create - CreateRobotParams: %w", err)
+		return nil, fmt.Errorf("failed to validate robot create model - CreateRobotParams: %w", err)
 	}
 	createRobotParamsWithContext.SetRobot(createRobotModel)
 
@@ -88,7 +88,8 @@ func (r *CreateRobotInputParams) CreateRobotParams(ctx context.Context) (*robot.
 
 func CreateRobotTableOutput(
 	writer table.Writer,
-	robot *robot.CreateRobotCreated) (table.Writer, error) {
+	robot *robot.CreateRobotCreated,
+	description string) (table.Writer, error) {
 
 	count := utils.CountDays(robot.GetPayload().ExpiresAt)
 	if count.Err != nil {
@@ -100,9 +101,19 @@ func CreateRobotTableOutput(
 		return nil, fmt.Errorf("failed to format creation time - OutputCreateRobotTable: %w", err)
 	}
 
-	writer.AppendHeader(table.Row{"Name", "Secret", "Creation_Time", "Expired_time", "D_Day"})
+	writer.AppendHeader(table.Row{
+		"ID",
+		"Name",
+		"Description",
+		"Secret",
+		"Creation_Time",
+		"Expired_time",
+		"D_Day",
+	})
 	writer.AppendRow(table.Row{
+		robot.GetPayload().ID,     /* id */
 		robot.GetPayload().Name,   /* name */
+		description,               /* description */
 		robot.GetPayload().Secret, /* secret */
 		creationTime,              /* creation_time */
 		utils.ExpiresAtToStringTime(robot.GetPayload().ExpiresAt), /* expires_at */

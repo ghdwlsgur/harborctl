@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/ghdwlsgur/captain/internal"
+	"github.com/ghdwlsgur/harborctl/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -14,8 +14,15 @@ var (
 	_user   = &internal.User{}
 	rootCmd = &cobra.Command{
 		Use:   "harborctl",
-		Short: `harbor client tool`,
-		Long:  `harbor client tool`,
+		Short: `it is a cli client tool for managing harbor robot accounts.`,
+		Long: `it is a cli client tool for managing harbor robot accounts.
+designed for Querypie PE team members, it primarily creates, deletes, 
+searches, and updates robot accounts on harbor.chequer.io.
+		`,
+		Example: `  harborctl create <robot-name> -d <duration> -e <description>
+  harborctl delete <robot-name>
+  harborctl search
+  harborctl update <robot-name> -d <duration>`,
 	}
 
 	doneMsg = color.New(color.Bold, color.FgHiGreen).PrintFunc()
@@ -29,8 +36,7 @@ func panicRed(err error) {
 func Execute(version string) {
 	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {
-		err = fmt.Errorf("failed to execute rootCmd: %w", err)
-		panicRed(err)
+		panicRed(fmt.Errorf("failed to execute rootCmd: %w", err))
 	}
 }
 
@@ -53,7 +59,6 @@ func authentication(u *internal.User) (string, error) {
 			return "", fmt.Errorf("failed to parsing credentials file - authentication: %w", err)
 		}
 
-		fmt.Printf("%s %s\n", color.HiWhiteString("You are logging in with"), color.HiGreenString(u.GetUsername()))
 		return c.GetBasicAuth(), nil
 	}
 
