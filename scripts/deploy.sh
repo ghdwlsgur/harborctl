@@ -8,7 +8,7 @@ CURRENT=$(pwd)
 function release
 {    
   go mod vendor
-  sudo rm -rf "$CURRENT"/dist "$CURRENT"/gopath  
+  rm -rf "$CURRENT"/dist "$CURRENT"/gopath  
   export GOPATH="$CURRENT"/gopath
 
   tag=$1
