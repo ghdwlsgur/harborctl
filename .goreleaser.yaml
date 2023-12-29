@@ -1,0 +1,56 @@
+project_name: harborctl
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - binary: harborctl
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    ldflags:
+      - -s -w
+      - -X main.oopsVersion={{.Version}}
+    ignore:
+      - goos: windows
+        goarch: arm64
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64      
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+release:
+  github:
+    owner: ghdwlsgur
+    name: harborctl
+brews:
+  - name: harborctl
+    homepage: "https://github.com/ghdwlsgur/harborctl"
+    description: "it is a cli client tool for managing harbor robot accounts."
+    tap:
+      owner: ghdwlsgur
+      name: homebrew-harborctl
+    commit_author:
+      name: ghdwlsgur
+      email: albert@chequer.io
