@@ -1,4 +1,4 @@
-module github.com/ghdwlsgur/captain
+module github.com/ghdwlsgur/harborctl
 
 go 1.21.3
 
