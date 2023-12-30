@@ -52,8 +52,8 @@ var UpdateCommand = &cobra.Command{
 						v.Description = "undefined"
 					}
 
-					// only show robots that have not expired
-					if v.Duration >= 0 {
+					Dday := utils.CountDays(v.ExpiresAt).LeftDays
+					if utils.Expiration(Dday) != utils.Expired {
 						k := fmt.Sprintf("%s [%s]", v.Description, v.Name)
 						robotTable[k] = &internal.Robot{
 							ID:           v.ID,
