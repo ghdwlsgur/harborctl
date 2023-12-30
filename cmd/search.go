@@ -53,13 +53,12 @@ var SearchCommand = &cobra.Command{
 
 					k := fmt.Sprintf("%s [%s]", v.Description, v.Name)
 					robotTable[k] = &internal.Robot{
-						ID:           v.ID,                                    /* ID */
-						Name:         v.Name,                                  /* Name */
-						Description:  v.Description,                           /* Description */
-						CreationTime: v.CreationTime.String(),                 /* CreationTime */
-						ExpiredTime:  v.ExpiresAt,                             /* ExpiredTime */
-						Dday:         utils.CountDays(v.ExpiresAt).Validate(), /* Dday */
-						Duration:     v.Duration,                              /* Duration */
+						ID:           v.ID,                    /* ID */
+						Name:         v.Name,                  /* Name */
+						Description:  v.Description,           /* Description */
+						CreationTime: v.CreationTime.String(), /* CreationTime */
+						ExpiredTime:  v.ExpiresAt,             /* ExpiredTime */
+						Duration:     v.Duration,              /* Duration */
 					}
 				}
 				ListRobotInputParams.NextPage()

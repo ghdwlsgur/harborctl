@@ -61,7 +61,6 @@ var UpdateCommand = &cobra.Command{
 							Description:  v.Description,
 							CreationTime: v.CreationTime.String(),
 							ExpiredTime:  v.ExpiresAt,
-							Dday:         utils.CountDays(v.ExpiresAt).Validate(),
 							Duration:     v.Duration,
 							Editable:     v.Editable,
 						}
