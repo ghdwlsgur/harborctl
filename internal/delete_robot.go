@@ -44,7 +44,7 @@ func DeleteRobotTableOutput(
 
 	creationTime, err := utils.CreationTimeFormatKST(robotTable.CreationTime)
 	if err != nil {
-		err = fmt.Errorf("failed to parse time - CreationTimeFormatKST: %w", err)
+		err = fmt.Errorf("DeleteRobotTableOutput(): %w", err)
 		return nil, err
 	}
 

@@ -7,17 +7,6 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-type HTTPMethod string
-
-const (
-	Get    HTTPMethod = "get"
-	Post   HTTPMethod = "post"
-	Put    HTTPMethod = "put"
-	Delete HTTPMethod = "delete"
-	Patch  HTTPMethod = "patch"
-	List   HTTPMethod = "list"
-)
-
 func NewRobotClient() robot.ClientService {
 	return client.Default.Robot
 }

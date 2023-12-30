@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/ghdwlsgur/harborctl/internal"
@@ -29,6 +30,15 @@ searches, and updates robot accounts on harbor.chequer.io.
 )
 
 func panicRed(err error) {
+	e := strings.Split(err.Error(), ":")
+	if len(e) > 0 {
+		signal := strings.TrimSpace(e[len(e)-1])
+		if os.Signal(os.Interrupt).String() == signal {
+			fmt.Println(color.RedString("%s signal received, harborctl exit", signal))
+			os.Exit(0)
+		}
+	}
+
 	fmt.Println(color.RedString("[err] %s", err.Error()))
 	os.Exit(1)
 }
@@ -56,14 +66,14 @@ func authentication(u *internal.User) (string, error) {
 	if u.Verify() {
 		c, err := u.Parsing()
 		if err != nil {
-			return "", fmt.Errorf("failed to parsing credentials file - authentication: %w", err)
+			return "", fmt.Errorf("failed to parsing credentials file: %w", err)
 		}
 
 		return c.GetBasicAuth(), nil
 	}
 
 	if err := u.Login(); err != nil {
-		return "", fmt.Errorf("failed to login - authentication: %w", err)
+		return "", fmt.Errorf("failed to login: %w", err)
 	}
 
 	return u.GetBasicAuth(), nil

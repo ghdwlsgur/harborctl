@@ -31,13 +31,14 @@ var DeleteCommand = &cobra.Command{
 			token,             /* token */
 		)
 		if err != nil {
-			panicRed(fmt.Errorf("failed to create list robot input params: %w", err))
+			panicRed(fmt.Errorf("failed to create listing robot input params: %w", err))
 		}
 
 		var (
 			robotTable = make(map[string]*internal.Robot)
 		)
 
+		spinner := utils.StartSpinner("Retrieving all robot accounts ")
 		for i := 0; i < ListRobotInputParams.GetMaxPage(); i++ {
 			success, robotPayload, err := ListRobotInputParams.Payload(ctx)
 			if err != nil {
@@ -63,9 +64,10 @@ var DeleteCommand = &cobra.Command{
 				}
 				ListRobotInputParams.NextPage()
 			} else {
-				panicRed(fmt.Errorf("failed to get robot payload: %w", err))
+				panicRed(fmt.Errorf("failed to get robot payload, success is false: %w", err))
 			}
 		}
+		utils.StopSpinner(spinner)
 
 		robots := make([]string, 0, len(robotTable))
 		for robotListed := range robotTable {
@@ -78,7 +80,7 @@ var DeleteCommand = &cobra.Command{
 			robots, /* options */
 			10 /* default */)
 		if err != nil {
-			panicRed(fmt.Errorf("failed to ask prompt option list: %w", err))
+			panicRed(fmt.Errorf("failed to ask prompt, option list: %w", err))
 		}
 
 		t := table.NewWriter()
@@ -89,7 +91,7 @@ var DeleteCommand = &cobra.Command{
 		msg = "Are you sure you want to delete this robot"
 		deleteAnswer, err := utils.AskYesOrNo(msg)
 		if err != nil {
-			panicRed(fmt.Errorf("failed to ask yes or no: %w", err))
+			panicRed(fmt.Errorf("failed to ask prompt, yes or no: %w", err))
 		}
 
 		if deleteAnswer == "Yes" {

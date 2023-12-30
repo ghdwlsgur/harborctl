@@ -32,13 +32,14 @@ var UpdateCommand = &cobra.Command{
 			token, /* token */
 		)
 		if err != nil {
-			panicRed(fmt.Errorf("failed to list robot input params: %w", err))
+			panicRed(fmt.Errorf("failed to create robot input params: %w", err))
 		}
 
 		var (
 			robotTable = make(map[string]*internal.Robot)
 		)
 
+		spinner := utils.StartSpinner("Retrieving a list of robot accounts with remaining expiration period ")
 		for i := 0; i < ListRobotInputParams.GetMaxPage(); i++ {
 			success, robotPayload, err := ListRobotInputParams.Payload(ctx)
 			if err != nil {
@@ -71,6 +72,7 @@ var UpdateCommand = &cobra.Command{
 				panicRed(fmt.Errorf("failed to get payload: %w", err))
 			}
 		}
+		utils.StopSpinner(spinner)
 
 		robots := make([]string, 0, len(robotTable))
 		for robotListed := range robotTable {
@@ -83,7 +85,7 @@ var UpdateCommand = &cobra.Command{
 			robots, /* options */
 			10 /* size */)
 		if err != nil {
-			panicRed(fmt.Errorf("failed to ask prompt option list: %w", err))
+			panicRed(fmt.Errorf("failed to ask prompt, option list: %w", err))
 		}
 
 		before := table.NewWriter()
@@ -106,7 +108,7 @@ var UpdateCommand = &cobra.Command{
 
 			updateRobotParams, err := updateRobotInputParams.UpdateRobotParams(ctx)
 			if err != nil {
-				panicRed(fmt.Errorf("failed to update robot params: %w", err))
+				panicRed(fmt.Errorf("failed to create updating robot params: %w", err))
 			}
 			robotUpdated, err := utils.NewRobotClient().UpdateRobot(
 				updateRobotParams,                      /* params */

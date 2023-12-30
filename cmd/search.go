@@ -31,13 +31,14 @@ var SearchCommand = &cobra.Command{
 			token,             /* token */
 		)
 		if err != nil {
-			panicRed(fmt.Errorf("failed to create list robot input params: %w", err))
+			panicRed(fmt.Errorf("failed to create listing robot input params: %w", err))
 		}
 
 		var (
 			robotTable = make(map[string]*internal.Robot)
 		)
 
+		spinner := utils.StartSpinner("Retrieving all robot accounts ")
 		for i := 0; i < ListRobotInputParams.GetMaxPage(); i++ {
 			success, robotPayload, err := ListRobotInputParams.Payload(ctx)
 			if err != nil {
@@ -66,6 +67,7 @@ var SearchCommand = &cobra.Command{
 				panicRed(fmt.Errorf("failed to get payload: %w", err))
 			}
 		}
+		utils.StopSpinner(spinner)
 
 		robots := make([]string, 0, len(robotTable))
 		for robotListed := range robotTable {
@@ -78,7 +80,7 @@ var SearchCommand = &cobra.Command{
 			robots, /* options */
 			10 /* size */)
 		if err != nil {
-			panicRed(fmt.Errorf("failed to ask prompt option list: %w", err))
+			panicRed(fmt.Errorf("failed to ask prompt, option list: %w", err))
 		}
 
 		t := table.NewWriter()

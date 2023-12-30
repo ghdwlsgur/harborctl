@@ -92,7 +92,7 @@ func (r *UpdateRobotInputParams) UpdateRobotParams(
 	}
 
 	if err := updateRobotParams.Robot.Validate(strfmt.Default); err != nil {
-		return nil, fmt.Errorf("failed to validate robot update model - UpdateRobotParams: %w", err)
+		return nil, fmt.Errorf("UpdateRobotParams: %w", err)
 	}
 
 	return updateRobotParams, nil
@@ -104,7 +104,7 @@ func UpdateRobotTableOutput(
 
 	creationTime, err := utils.CreationTimeFormatKST(robot.CreationTime.String())
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse time - CreationTimeFormatKST: %w", err)
+		return nil, fmt.Errorf("UpdateRobotTableOutput: %w", err)
 	}
 
 	writer.SetTitle("After")

@@ -79,7 +79,7 @@ func (r *CreateRobotInputParams) CreateRobotParams(ctx context.Context) (*robot.
 	}
 
 	if err := createRobotModel.Validate(strfmt.Default); err != nil {
-		return nil, fmt.Errorf("failed to validate robot create model - CreateRobotParams: %w", err)
+		return nil, fmt.Errorf("CreateRobotParams(): %w", err)
 	}
 	createRobotParamsWithContext.SetRobot(createRobotModel)
 
@@ -93,12 +93,12 @@ func CreateRobotTableOutput(
 
 	count := utils.CountDays(robot.GetPayload().ExpiresAt)
 	if count.Err != nil {
-		return nil, fmt.Errorf("failed to count days - OutputCreateRobotTable: %w", count.Err)
+		return nil, fmt.Errorf("utils.CountDays - OutputCreateRobotTable: %w", count.Err)
 	}
 
 	creationTime, err := utils.CreationTimeFormatKST(robot.GetPayload().CreationTime.String())
 	if err != nil {
-		return nil, fmt.Errorf("failed to format creation time - OutputCreateRobotTable: %w", err)
+		return nil, fmt.Errorf("utils.CreationTimeFormatKST - OutputCreateRobotTable: %w", err)
 	}
 
 	writer.AppendHeader(table.Row{

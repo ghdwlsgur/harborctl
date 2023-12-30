@@ -8,6 +8,7 @@ import (
 	"github.com/ghdwlsgur/harbor-robot-sdk/pkg/sdk/robot/models"
 	"github.com/ghdwlsgur/harborctl/utils"
 	"github.com/jedib0t/go-pretty/table"
+	"github.com/jedib0t/go-pretty/text"
 )
 
 type Robot struct {
@@ -57,7 +58,7 @@ func NewListRobotInputParams(
 
 	l.TotalSize, err = l.setTotalSize(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get total size: %w", err)
+		return nil, fmt.Errorf("NewListRobotInputParams: %w", err)
 	}
 
 	return l, nil
@@ -78,7 +79,7 @@ func (r *ListRobotInputParams) setTotalSize(ctx context.Context) (int, error) {
 		utils.SetAuthorizationWithToken(r.GetToken()), /* authInfo */
 	)
 	if err != nil {
-		return 0, fmt.Errorf("failed to list robot: %w", err)
+		return 0, fmt.Errorf("setTotalSize: %w", err)
 	}
 
 	return int(robot.XTotalCount), nil
@@ -123,7 +124,7 @@ func (r *ListRobotInputParams) Payload(ctx context.Context) (bool, []*models.Rob
 		utils.SetAuthorizationWithToken(r.GetToken()), /* authInfo */
 	)
 	if err != nil {
-		err = fmt.Errorf("failed to list robot: %w", err)
+		err = fmt.Errorf("Payload: %w", err)
 		return false, nil, err
 	}
 
@@ -136,10 +137,11 @@ func ListRobotTableOutput(
 
 	creationTime, err := utils.CreationTimeFormatKST(robotTable.CreationTime)
 	if err != nil {
-		err = fmt.Errorf("failed to parse time - CreationTimeFormatKST: %w", err)
+		err = fmt.Errorf("utils.CreationTimeFormatKST - ListRobotTableOutput: %w", err)
 		return nil, err
 	}
 
+	leftDays := utils.CountDays(robotTable.ExpiredTime).Validate()
 	writer.AppendHeader(table.Row{
 		"ID",
 		"Name",
@@ -149,6 +151,27 @@ func ListRobotTableOutput(
 		"D_Day",
 		"Duration",
 	})
+	colorColumn := []string{
+		"ID",
+		"Name",
+		"Description",
+		"Creation_Time",
+		"Expired_Time",
+		"D_Day",
+	}
+	if leftDays == utils.ExpiredMessage {
+		colorConfig := []table.ColumnConfig{}
+		for _, v := range colorColumn {
+			colorConfig = append(colorConfig, table.ColumnConfig{
+				Name:        v,
+				Align:       text.AlignLeft,
+				AlignHeader: text.AlignLeft,
+				AlignFooter: text.AlignLeft,
+				Colors:      text.Colors{text.FgHiRed, text.Bold},
+			})
+		}
+		writer.SetColumnConfigs(colorConfig)
+	}
 	writer.AppendRow(table.Row{
 		robotTable.ID,
 		robotTable.Name,

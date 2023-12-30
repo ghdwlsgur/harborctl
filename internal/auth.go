@@ -37,7 +37,7 @@ var _ Auth = (*User)(nil)
 
 func (u *User) setUsername(username string) error {
 	if username == "" {
-		return errors.New("failed to set username because username is empty - setUsername")
+		return errors.New("failed to set username because username is empty")
 	}
 	u.Username = username
 	return nil
@@ -45,7 +45,7 @@ func (u *User) setUsername(username string) error {
 
 func (u *User) setPassword(password string) error {
 	if password == "" {
-		return errors.New("failed to set password because password is empty - setPassword")
+		return errors.New("failed to set password because password is empty")
 	}
 	u.Password = password
 	return nil
@@ -63,7 +63,7 @@ func (u User) createCredentialParentFile() error {
 	if _, err := os.Stat(_credentialParentFile); os.IsNotExist(err) {
 		err := os.Mkdir(_credentialParentFile, 0755)
 		if err != nil {
-			return errors.New("failed to create credential parent file - createCredentialParentFile")
+			return errors.New("createCredentialParentFile")
 		}
 	}
 	return nil
@@ -73,7 +73,7 @@ func (u User) createCredentialFile() error {
 	if _, err := os.Stat(_credentialFile); os.IsNotExist(err) {
 		f, err := os.Create(_credentialFile)
 		if err != nil {
-			return errors.New("failed to create credential file - createCredentialFile")
+			return errors.New("createCredentialFile")
 		}
 		f.Close()
 	}
@@ -82,16 +82,16 @@ func (u User) createCredentialFile() error {
 
 func (u *User) setCredential() error {
 	if err := u.createCredentialParentFile(); err != nil {
-		return err
+		return fmt.Errorf("setCredential: %w", err)
 	}
 
 	if err := u.createCredentialFile(); err != nil {
-		return err
+		return fmt.Errorf("setCredential: %w", err)
 	}
 
 	f, err := os.Create(_credentialFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("os.Create - setCredential: %w", err)
 	}
 	defer f.Close()
 
@@ -112,8 +112,9 @@ func (u User) Verify() bool {
 func (u *User) Parsing() (*User, error) {
 	credential, err := os.ReadFile(_credentialFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("os.ReadFile - Parsing: %w", err)
 	}
+
 	lines := strings.Split(string(credential), "\n")
 	for _, line := range lines {
 		parts := strings.Split(line, "=")
@@ -125,14 +126,14 @@ func (u *User) Parsing() (*User, error) {
 			if key == "username" {
 				err := u.setUsername(value)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("Parsing: %w", err)
 				}
 			}
 
 			if key == "password" {
 				err := u.setPassword(value)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("Parsing: %w", err)
 				}
 			}
 		}
@@ -155,7 +156,7 @@ func (u *User) Login() error {
 	survey.AskOne(promptUsername, &username)
 	err := u.setUsername(username)
 	if err != nil {
-		return err
+		return fmt.Errorf("Login: %w", err)
 	}
 
 	var password string
@@ -165,12 +166,12 @@ func (u *User) Login() error {
 	survey.AskOne(promptPassword, &password)
 	err = u.setPassword(password)
 	if err != nil {
-		return err
+		return fmt.Errorf("Login: %w", err)
 	}
 
 	err = u.setCredential()
 	if err != nil {
-		return err
+		return fmt.Errorf("Login: %w", err)
 	}
 	return nil
 }
