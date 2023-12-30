@@ -1,6 +1,26 @@
 package utils
 
-import "github.com/AlecAivazis/survey/v2"
+import (
+	"time"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/briandowns/spinner"
+	"github.com/fatih/color"
+)
+
+func StartSpinner(message string) *spinner.Spinner {
+	s := spinner.New(spinner.CharSets[17], 100*time.Millisecond)
+	s.UpdateCharSet(spinner.CharSets[17])
+	s.Color("fgHiCyan")
+	s.Prefix = color.HiCyanString(message)
+	s.Start()
+
+	return s
+}
+
+func StopSpinner(s *spinner.Spinner) {
+	s.Stop()
+}
 
 func AskPromptOptionList(
 	message string,
