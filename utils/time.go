@@ -6,6 +6,17 @@ import (
 	"time"
 )
 
+type Expiration int
+
+const (
+	Expired      Expiration = 0
+	NeverExpired Expiration = -1
+
+	location            = "Asia/Seoul"
+	ExpiredMessage      = "Expired"
+	NeverExpiredMessage = "Never Expires"
+)
+
 type Count struct {
 	LeftDays int
 	Err      error
@@ -16,33 +27,32 @@ func (d *Count) Validate() string {
 		return d.Err.Error()
 	}
 
-	switch d.LeftDays {
-	case 0:
-		return "Expired"
-	case -1:
-		return "Never Expires"
+	switch Expiration(d.LeftDays) {
+	case Expired:
+		return ExpiredMessage
+	case NeverExpired:
+		return NeverExpiredMessage
 	}
 
 	return strconv.Itoa(d.LeftDays)
 }
 
 func ExpiresAtToStringTime(expiresAt int64) string {
-	if expiresAt == -1 {
-		return "Never Expires"
+	if Expiration(expiresAt) == NeverExpired {
+		return NeverExpiredMessage
 	}
-	times := time.Unix(expiresAt, 0)
-	return times.Format(time.RFC3339)
+	return time.Unix(expiresAt, 0).Format(time.RFC3339)
 }
 
 func CreationTimeFormatKST(creationTime string) (string, error) {
 	utcTime, err := time.Parse(time.RFC3339, creationTime)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse time - CreationTimeFormatKST: %w", err)
+		return "", fmt.Errorf("time.Parse - CreationTimeFormatKST: %w", err)
 	}
 
-	location, err := time.LoadLocation("Asia/Seoul")
+	location, err := time.LoadLocation(location)
 	if err != nil {
-		return "", fmt.Errorf("failed to load location - CreationTimeFormatKST: %w", err)
+		return "", fmt.Errorf("time.LoadLocation - CreationTimeFormatKST: %w", err)
 	}
 
 	kstTime := utcTime.In(location)
@@ -50,22 +60,24 @@ func CreationTimeFormatKST(creationTime string) (string, error) {
 }
 
 func CountDays(expiresAt int64) *Count {
-	expireTimes := time.Unix(expiresAt, 0)
+	if expiresAt < 0 {
+		return &Count{LeftDays: int(NeverExpired), Err: nil}
+	}
 
-	location, err := time.LoadLocation("Asia/Seoul")
+	expireTimes := time.Unix(expiresAt, 0)
+	location, err := time.LoadLocation(location)
 	if err != nil {
 		return &Count{
-			0, fmt.Errorf("failed to load location: %w", err),
+			0, fmt.Errorf("time.LoadLocation - CountDays: %w", err),
 		}
 	}
 
 	now := time.Now().In(location)
 	duration := expireTimes.Sub(now)
-	days := int(duration.Hours() / 24)
 
-	if days < 0 {
-		days = -1
+	if days := int(duration.Hours() / 24); days <= 0 {
+		return &Count{LeftDays: int(Expired), Err: nil}
+	} else {
+		return &Count{LeftDays: days, Err: nil}
 	}
-
-	return &Count{LeftDays: days, Err: nil}
 }
