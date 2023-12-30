@@ -53,7 +53,7 @@ func Execute(version string) {
 type header string
 
 func initConfig() {
-	BasicAuth, err := authentication(_user)
+	BasicAuth, err := Authentication(_user)
 	if err != nil {
 		panicRed(err)
 	}
@@ -62,7 +62,7 @@ func initConfig() {
 	rootCmd.SetContext(ctx)
 }
 
-func authentication(u *internal.User) (string, error) {
+func Authentication(u *internal.User) (string, error) {
 	if u.Verify() {
 		c, err := u.Parsing()
 		if err != nil {
