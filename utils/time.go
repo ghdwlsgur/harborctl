@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 )
@@ -75,7 +76,7 @@ func CountDays(expiresAt int64) *Count {
 	now := time.Now().In(location)
 	duration := expireTimes.Sub(now)
 
-	if days := int(duration.Hours() / 24); days <= 0 {
+	if days := int(math.Ceil(duration.Hours() / 24)); days < 0 {
 		return &Count{LeftDays: int(Expired), Err: nil}
 	} else {
 		return &Count{LeftDays: days, Err: nil}
