@@ -61,8 +61,18 @@ var CreateCommand = &cobra.Command{
 				description /* description */)
 			t.Render()
 
-			msg := fmt.Sprintf("Successfully created robot %s\n", robotCreated.GetPayload().Name)
-			doneMsg(msg)
+			response, err := internal.SaveSecret(
+				robotCreated, /* *robot.CreateRobotCreated */
+				token,        /* token */
+				description /* description */)
+			if err != nil {
+				panicRed(fmt.Errorf("failed to store secret: %w", err))
+			}
+
+			if response.Code == 200 {
+				msg := fmt.Sprintf("Successfully created robot %s\n", robotCreated.GetPayload().Name)
+				doneMsg(msg)
+			}
 		}
 	},
 }

@@ -82,10 +82,18 @@ var SearchCommand = &cobra.Command{
 			panicRed(fmt.Errorf("failed to ask prompt, option list: %w", err))
 		}
 
-		t := table.NewWriter()
-		t.SetOutputMirror(os.Stdout)
-		internal.ListRobotTableOutput(t, robotTable[answer])
-		t.Render()
+		response, err := internal.GetSecret(robotTable[answer].ID, token)
+		if err != nil {
+			panicRed(fmt.Errorf("failed to get secret: %w", err))
+		}
+
+		if response.Code == 200 {
+			t := table.NewWriter()
+			t.SetOutputMirror(os.Stdout)
+			internal.ListRobotTableOutput(t, robotTable[answer], response.Response.Data)
+			t.Render()
+		}
+
 	},
 }
 

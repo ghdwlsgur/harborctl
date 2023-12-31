@@ -105,8 +105,15 @@ var DeleteCommand = &cobra.Command{
 			}
 
 			if robot.IsSuccess() {
-				msg := fmt.Sprintf("Successfully deleted robot %s\n", robotTable[answer].Description)
-				doneMsg(msg)
+				response, err := internal.DeleteSecret(robotTable[answer].ID, token)
+				if err != nil {
+					panicRed(fmt.Errorf("failed to delete secret: %w", err))
+				}
+
+				if response.Code == 200 {
+					msg := fmt.Sprintf("Successfully deleted robot %s\n", robotTable[answer].Description)
+					doneMsg(msg)
+				}
 			}
 		}
 

@@ -133,7 +133,8 @@ func (r *ListRobotInputParams) Payload(ctx context.Context) (bool, []*models.Rob
 
 func ListRobotTableOutput(
 	writer table.Writer,
-	robotTable *Robot) (table.Writer, error) {
+	robotTable *Robot,
+	secret ...string) (table.Writer, error) {
 
 	creationTime, err := utils.CreationTimeFormatKST(robotTable.CreationTime)
 	if err != nil {
@@ -141,10 +142,15 @@ func ListRobotTableOutput(
 		return nil, err
 	}
 
+	if len(secret) <= 0 {
+		secret = append(secret, "*")
+	}
+
 	leftDays := utils.CountDays(robotTable.ExpiredTime).Validate()
 	writer.AppendHeader(table.Row{
 		"ID",
 		"Name",
+		"Secret",
 		"Description",
 		"Creation_Time",
 		"Expired_Time",
@@ -154,6 +160,7 @@ func ListRobotTableOutput(
 	colorColumn := []string{
 		"ID",
 		"Name",
+		"Secret",
 		"Description",
 		"Creation_Time",
 		"Expired_Time",
@@ -175,6 +182,7 @@ func ListRobotTableOutput(
 	writer.AppendRow(table.Row{
 		robotTable.ID,
 		robotTable.Name,
+		secret[0],
 		robotTable.Description,
 		creationTime,
 		utils.ExpiresAtToStringTime(robotTable.ExpiredTime),
