@@ -29,8 +29,13 @@ type Response struct {
 	} `json:"response"`
 }
 
+const (
+	baseURL = "http://10.60.10.144"
+	port    = "8081"
+)
+
 func GetURL(robotId int) string {
-	return "http://10.60.10.144:8081/api/v1/harborctl/robot/" + strconv.Itoa(robotId)
+	return baseURL + ":" + port + "/api/v1/harborctl/robot/" + strconv.Itoa(robotId)
 }
 
 func DeleteSecret(robotID int64, token string) (*Response, error) {
