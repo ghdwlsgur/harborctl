@@ -175,3 +175,8 @@ func (u *User) Login() error {
 	}
 	return nil
 }
+
+func GetHostname() string {
+	hostname, _ := os.Hostname()
+	return hostname
+}

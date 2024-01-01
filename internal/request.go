@@ -19,6 +19,10 @@ type Request struct {
 	ExpiresAt   string `json:"expires_at"`
 }
 
+type DeleteRequest struct {
+	Hostname string `json:"hostname"`
+}
+
 type Response struct {
 	Code     int    `json:"code"`
 	Message  string `json:"msg"`
@@ -39,7 +43,16 @@ func GetURL(robotId int) string {
 }
 
 func DeleteSecret(robotID int64, token string) (*Response, error) {
-	req, err := http.NewRequest("DELETE", GetURL(int(robotID)), nil)
+	data := DeleteRequest{
+		Hostname: GetHostname(),
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("json.Marshal - RequestStoreSecret: %w", err)
+	}
+
+	req, err := http.NewRequest("DELETE", GetURL(int(robotID)), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("http.NewRequest - GetSecret: %w", err)
 	}
