@@ -41,5 +41,3 @@ harborctl search
 ```bash
 make release TAG=v1.0.1
 ```
-
-[![asciicast](https://asciinema.org/a/IayRztV5EVPLu7BIf6PYaBMxO.svg)](https://asciinema.org/a/IayRztV5EVPLu7BIf6PYaBMxO)
